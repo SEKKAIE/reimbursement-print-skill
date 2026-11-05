@@ -5,10 +5,12 @@ import json
 import re
 import sys
 import xml.etree.ElementTree as ET
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 TEXT_SUFFIXES = {".md", ".json", ".yaml", ".yml", ".py", ".mjs", ".txt"}
 EXPECTED_BINARY = Path("assets/package/forms/reimbursement-forms.xlsx")
+APPROVED_IMAGES = {Path("assets/reimbursement-print-ink.png")}
 EXCLUDED_DIRS = {".git", "__pycache__", ".venv", "node_modules"}
 PATTERNS = {
     "absolute local drive path": re.compile(r"(?<![A-Za-z])[A-Za-z]:[\\/](?!/)"),
@@ -49,7 +51,7 @@ for path in sorted(ROOT.rglob("*")):
     if not path.is_file() or any(part in EXCLUDED_DIRS for part in path.relative_to(ROOT).parts):
         continue
     relative = path.relative_to(ROOT)
-    check(path.suffix not in {".pdf", ".png", ".jpg", ".jpeg", ".ofd", ".zip", ".db", ".sqlite"}, f"Unexpected data/binary file: {relative}")
+    check(path.suffix not in {".pdf", ".png", ".jpg", ".jpeg", ".ofd", ".zip", ".db", ".sqlite"} or relative in APPROVED_IMAGES, f"Unexpected data/binary file: {relative}")
     check(path.suffix != ".xlsx" or relative == EXPECTED_BINARY, f"Unexpected workbook: {relative}")
     if path.suffix in TEXT_SUFFIXES or path.name in {"LICENSE", ".gitignore"}:
         text = path.read_text(encoding="utf-8-sig")
@@ -63,6 +65,26 @@ for path in sorted(ROOT.rglob("*")):
                 file_target = target.split("#", 1)[0]
                 if file_target:
                     check((path.parent / file_target).is_file(), f"Broken link {relative}: {target}")
+            for target in re.findall(r'(?:src|href)="([^"]+)"', text):
+                if re.match(r"[A-Za-z][A-Za-z0-9+.-]*:", target) or target.startswith("#"):
+                    continue
+                check((path.parent / target.split("#", 1)[0]).is_file(), f"Broken HTML asset/link {relative}: {target}")
+
+for relative in APPROVED_IMAGES:
+    path = ROOT / relative
+    check(path.is_file(), f"Missing approved illustration: {relative}")
+    if path.is_file():
+        with Image.open(path) as artwork:
+            check(artwork.format == "PNG", f"Expected PNG illustration: {relative}")
+            check(artwork.width == artwork.height and artwork.width >= 256, f"Expected square illustration with usable resolution: {relative}")
+            for key, value in artwork.info.items():
+                if isinstance(value, str):
+                    scan_text(f"image metadata:{relative}:{key}", value)
+
+icon_metadata = (ROOT / "agents/openai.yaml").read_text(encoding="utf-8")
+for field in ["icon_small", "icon_large"]:
+    matches = re.findall(rf'{field}:\s*"([^"]+)"', icon_metadata)
+    check(len(matches) == 1 and (ROOT / matches[0]).is_file(), f"Invalid {field} asset")
 
 skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
 check(skill.startswith("---\n"), "SKILL.md frontmatter missing")

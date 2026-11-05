@@ -1,4 +1,6 @@
 interface:
   display_name: "Reimbursement Print"
+  icon_small: "./assets/reimbursement-print-ink.png"
+  icon_large: "./assets/reimbursement-print-ink.png"
   short_description: "Draft Chinese claim forms and pack receipts onto A4 sheets"
   default_prompt: "Use $reimbursement-print to prepare editable reimbursement forms and A4 print packs from this local receipt folder."

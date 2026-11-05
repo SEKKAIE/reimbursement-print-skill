@@ -1,58 +1,90 @@
-# Reimbursement Print
+<p align="center">
+  <img src="assets/reimbursement-print-ink.png" width="256" alt="Hand peeling a blank landscape bill from a bill book, drawn in black ink on white paper">
+</p>
 
-A Codex skill for turning local receipt folders into editable Chinese reimbursement forms and A4 supporting-document print packs.
+<h1 align="center">Reimbursement Print</h1>
 
-Give Codex a folder of PDFs and payment screenshots. The skill guides evidence matching, missing-information review, Excel filling and proportional print layouts. It includes generic travel, expense and client-reception forms, plus a four-row layout for whole Ctrip flight/hotel pages that can be cut after printing.
+<p align="center">
+  Give Codex a receipt folder. Get editable Chinese reimbursement forms and A4 evidence sheets for review, printing and cutting.
+</p>
 
-## Install in Codex
+<p align="center">
+  <a href="LICENSE">MIT license</a> · <a href="references/setup.md">Setup &amp; commands</a> · <a href="CONTRIBUTING.md">Contribute</a>
+</p>
 
-Clone the repository into your Codex skills directory:
+## Start in Codex
+
+**Excel filling requires Codex's `@oai/artifact-tool` runtime package; ordinary Node.js alone is insufficient.** PDF helpers use Python. See [setup](references/setup.md) for dependencies and runtime discovery.
+
+Install the skill:
 
 ```powershell
 git clone https://github.com/SEKKAIE/reimbursement-print-skill.git "$HOME/.codex/skills/reimbursement-print"
 ```
 
-For a ZIP installation, extract the repository and rename/move its folder to `~/.codex/skills/reimbursement-print`. That folder must directly contain `SKILL.md`, `agents`, `references` and `assets`. Refresh or restart Codex if the new skill is not discovered.
-
-Then tell Codex:
+Then give Codex your folder:
 
 ```text
 Use $reimbursement-print to process the receipts in <my receipt folder>.
-Keep unknown profile and bank fields blank, show missing evidence,
-and prepare editable Excel forms plus A4 supporting-document PDFs.
+Keep unknown details blank, flag missing evidence, and prepare editable forms and A4 print packs.
 ```
 
-You can also ask in Chinese: `使用 $reimbursement-print 处理这个票据文件夹，填写报销表单并准备打印材料。`
+中文也可以：`使用 $reimbursement-print 处理这个票据文件夹，填写报销表单并准备打印材料。`
 
-## What is included
+<details>
+<summary>Install from ZIP or update an existing copy</summary>
 
-| File | Purpose |
-| --- | --- |
-| [SKILL.md](SKILL.md) | Instructions for the Codex handling the batch |
-| [Setup](references/setup.md) | Runtime requirements and exact helper commands |
-| [Job contract](references/job-contract.md) | How expenses, evidence and private profile inputs connect |
-| [Print layouts](references/print-layouts.md) | Sizes, Ctrip four-row packing and print settings |
-| [Generic Excel master](assets/package/forms/reimbursement-forms.xlsx) | Expense, travel and reception-application templates |
-| [Form filler](assets/package/forms/fill_forms.mjs) | Creates a separate filled XLSX and a review report |
-| [Attachment packer](assets/package/scripts/pack_by_layout.py) | Creates supporting-document PDFs with cut guides |
-| [Schema and empty example](assets/package/schema/job.schema.json) | Machine-readable job inputs |
+Extract the ZIP and place its folder at `~/.codex/skills/reimbursement-print`. That folder must directly contain `SKILL.md`, `agents`, `references` and `assets`. Refresh or restart Codex if the skill is not discovered.
 
-The bundle contains generic templates and code. Configure your actual organization, people, bank details and approval rules locally. It does not include real receipts, transactions, personal profiles, company policies or a business archive.
+To update a Git installation with no local edits, run `git pull --ff-only` inside the installed folder. Keep real jobs, profiles and outputs elsewhere.
 
-## Requirements and limits
+</details>
 
-- Python with Pillow, pypdf and reportlab for checks/packing; tested versions are in [requirements.txt](requirements.txt).
-- Node.js and Codex's **`@oai/artifact-tool`** runtime package for the XLSX filler. Ordinary Node alone is insufficient. Runtime binaries are not redistributed here.
-- The helpers create filled workbooks and attachment PDFs. Codex must use an available spreadsheet/PDF tool to export the selected cover sheets and assemble a combined PDF when requested.
-- Inputs are drafts reviewed by the user. There is no invoice-authenticity service, automatic approval, submission, payment, background monitoring or physical printing.
-- Local Windows/Codex execution is the current tested environment. Do not assume other hosts or a particular printer have been validated.
+## From folder to print pack
 
-The cover is approximately 220 × 136 mm. Supporting pieces are smaller. Ctrip documents are arranged as **one column × four rows on A4**, each source page kept whole. Print output PDFs at **100%, one PDF page per sheet**; the layout is already imposed.
+1. **Point to your files.** Supply invoice PDFs, payment screenshots and any bills, itineraries or approvals. No special filenames or extra XML/OFD downloads are needed.
+2. **Match evidence and fill Excel.** Codex links documents to expense lines, flags missing details and fills a separate workbook for travel, ordinary expenses or client reception.
+3. **Review, print and cut.** Check the amounts and missing inputs, print the prepared A4 sheets at **100%**, then cut along the guides. Signatures stay blank.
 
-## Update and contribute
+The helpers keep expenses separate from supporting payments, preserve original documents and exclude already-held physical originals from reprinting when you confirm `print:false`.
 
-Inside your installed folder, use `git pull --ff-only` to update when it has no local edits. Keep organization-specific profiles and receipts elsewhere so updates do not overwrite them. To maintain code, make a branch or fork, use synthetic test data and open a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md).
+## Sized for the paper workflow
 
-Access to push changes is controlled by GitHub repository permissions; sharing this URL does not grant write access. A colleague can propose changes through a fork and pull request, or an owner can separately invite them as a collaborator.
+| Document | Print size | Arrangement |
+| --- | --- | --- |
+| Travel / expense cover | ≈220 × 136 mm | Saved worksheet scale: 100% |
+| Reception application | ≈198 × 86.5 mm | Saved worksheet scale: 90% |
+| Ordinary evidence | 198 × 126 mm | Two rows per A4 |
+| Payment screenshots | 96 × 126 mm | Two columns × two rows per A4 |
+| Whole Ctrip flight / hotel pages | 198 × 66 mm | **One column × four rows per A4** |
 
-License: see [LICENSE](LICENSE).
+Each Ctrip source page stays whole, proportionally fitted into one strip. No splitting or stretching; unused rows remain empty. Evidence PDFs are already laid out: print **one PDF page per A4 sheet**, without applying another “four pages per sheet” setting. See [print layouts](references/print-layouts.md).
+
+<details>
+<summary>Runtime dependencies and what the helpers produce</summary>
+
+- **Checks and PDF packing:** Python with Pillow, pypdf and reportlab. Tested versions are in [requirements.txt](requirements.txt).
+- **Excel filling:** Node.js and Codex's **`@oai/artifact-tool`** package. Ordinary Node alone is insufficient; runtimes are not bundled.
+- **Outputs:** a filled XLSX, supporting-document PDFs and review reports. A combined cover-plus-evidence PDF requires Codex to export the selected worksheets and assemble them with an available spreadsheet/PDF tool.
+
+[Setup and exact commands](references/setup.md) cover dependency discovery and each helper. Windows with Codex is the current tested environment; other hosts and physical printers require their own checks.
+
+</details>
+
+<details>
+<summary>Privacy and limits</summary>
+
+This repository contains generic templates, code and synthetic examples. Keep real receipts, organization profiles, banking details and generated claims **outside the repository**. Configure actual names and rules locally; unknown fields stay blank.
+
+The skill works inside Codex. It does not authenticate invoices, approve or submit claims, make payments, monitor folders or operate a printer. Outputs remain drafts for review. Receipt uploads to an external OCR service require authorization.
+
+</details>
+
+## Resources and contributions
+
+- [Skill instructions](SKILL.md) · [Setup and commands](references/setup.md)
+- [Job contract](references/job-contract.md) · [JSON schema](assets/package/schema/job.schema.json) · [Empty example](assets/package/schema/job.example.json)
+- [Blank Excel master](assets/package/forms/reimbursement-forms.xlsx) · [Cell map](assets/package/forms/field-map.json)
+- [Form filler](assets/package/forms/fill_forms.mjs) · [Attachment packer](assets/package/scripts/pack_by_layout.py)
+
+Fork or create a branch, use synthetic test data, and open a pull request. [Contribution guidance](CONTRIBUTING.md) includes the required checks. Repository permissions control direct pushes; sharing the URL does not grant write access, and collaborator invitations remain a separate owner action.
