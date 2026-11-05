@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "claim_type": "travel",
+  "title": "",
+  "profile": {
+    "organization": "",
+    "department": "",
+    "handler": "",
+    "expense_owner": "",
+    "recipient": "",
+    "bank": "",
+    "account": ""
+  },
+  "claim": {
+    "date": null,
+    "period": null,
+    "attachment_count": null
+  },
+  "reception_application": {},
+  "expenses": [],
+  "evidence": [],
+  "source_companions": []
+}

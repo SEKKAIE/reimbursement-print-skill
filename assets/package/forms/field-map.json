@@ -1,0 +1,139 @@
+{
+  "version": "1.0",
+  "status": "blank_generic_template",
+  "signatures": "leave_blank",
+  "paper_size_status": "A4 landscape; expense/travel100%, reception90%; actual printer output not tested.",
+  "forms": {
+    "expense": {
+      "sheet": "费用报销单",
+      "print_area": "A1:Z23",
+      "rows": 9,
+      "detail_rows": [
+        7,
+        15
+      ],
+      "name_column": "A",
+      "reason_column": "F",
+      "amount_column": "AA",
+      "total_cell": "V16",
+      "uppercase_cell": "G16",
+      "attachment_count_input": null,
+      "attachment_count_note": "Blank by default; fill only when the applicable counting rule is known.",
+      "signature_ranges": [
+        "A19:Y21",
+        "A22:Y23"
+      ],
+      "print_scale_percent": 100
+    },
+    "travel": {
+      "sheet": "差旅费报销单",
+      "print_area": "A1:P20",
+      "rows": 6,
+      "detail_rows": [
+        7,
+        12
+      ],
+      "fields": {
+        "month": "A",
+        "day": "B",
+        "purpose": "C",
+        "from": "D",
+        "to": "E",
+        "ticket_count": "F",
+        "ticket_amount": "G",
+        "hotel_count": "H",
+        "hotel_amount": "I",
+        "taxi_actual_amount": "K",
+        "meal_count": "L",
+        "meal_actual_amount": "M",
+        "other_amount": "N",
+        "row_total": "O",
+        "traffic_quantity": "J"
+      },
+      "total_cell": "O13",
+      "uppercase_cell": "D14",
+      "signature_ranges": [
+        "A17:O18",
+        "A19:O20"
+      ],
+      "traffic_days_note": "Generic quantity field; unit and count require explicit source information.",
+      "meal_note": "Use explicitly supplied amounts and counts; confirm the applicable expense rules separately.",
+      "attachment_count_input": null,
+      "attachment_count_note": "Blank by default; fill only when the applicable counting rule is known.",
+      "print_scale_percent": 100
+    },
+    "reception": {
+      "sheet": "业务招待申请单",
+      "print_area": "A1:L11",
+      "fields": {
+        "date": "I3",
+        "department": "C4",
+        "guest": "G4",
+        "guest_count": "L4",
+        "reception_time": "C5",
+        "location": "G5",
+        "estimated_amount": "L5",
+        "host_attendees": "C6",
+        "purpose": "C8"
+      },
+      "signature_ranges": [
+        "A10:L11"
+      ],
+      "estimated_amount_note": "Prior estimate is a separate input; do not infer it from actual receipts.",
+      "print_scale_percent": 90,
+      "effective_print_size_mm": [
+        198.12,
+        86.49
+      ],
+      "enclosing_print_box_mm": [
+        199,
+        87
+      ],
+      "strictly_smaller_than_cover": true
+    }
+  },
+  "profile": {
+    "sheet": "填写说明",
+    "department": "B4",
+    "handler": "B5",
+    "recipient": "B6",
+    "bank": "B7",
+    "account": "B8",
+    "organization": "B9",
+    "defaults": {
+      "department": "",
+      "handler": "",
+      "recipient": "",
+      "bank": "",
+      "account": "",
+      "organization": ""
+    }
+  },
+  "readonly_formula_fields": [
+    "费用报销单!P7:Y15",
+    "费用报销单!G16",
+    "费用报销单!V16",
+    "差旅费报销单!O7:O14",
+    "差旅费报销单!F13:N13",
+    "差旅费报销单!D14"
+  ],
+  "attachment_requirement": "Default attachment dimensions must fit within the configured cover; adapt print geometry and physical-document handling to the actual workflow.",
+  "organization_heading_cells": {
+    "费用报销单": "A1",
+    "差旅费报销单": "A1"
+  },
+  "print_geometry_mm": {
+    "cover": [
+      220,
+      136
+    ],
+    "reception": [
+      198.12,
+      86.49
+    ],
+    "reception_enclosing_box": [
+      199,
+      87
+    ]
+  }
+}

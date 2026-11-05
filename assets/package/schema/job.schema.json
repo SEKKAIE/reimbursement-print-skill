@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reimbursement Print job",
+  "type": "object",
+  "required": ["schema_version", "claim_type", "profile", "expenses", "evidence"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "claim_type": {"enum": ["travel", "reception", "expense"]},
+    "title": {"type": "string"},
+    "profile": {
+      "type": "object",
+      "description": "Private user-supplied profile, stored outside the public skill.",
+      "properties": {
+        "organization": {"type": "string"},
+        "department": {"type": "string"},
+        "handler": {"type": "string"},
+        "expense_owner": {"type": "string"},
+        "recipient": {"type": "string"},
+        "bank": {"type": "string"},
+        "account": {"type": "string"}
+      }
+    },
+    "claim": {
+      "type": "object",
+      "properties": {
+        "date": {"type": ["string", "null"]},
+        "period": {"type": ["string", "null"]},
+        "attachment_count": {"type": "null"}
+      }
+    },
+    "reception_application": {
+      "type": "object",
+      "description": "Source-backed event details. Prior estimated budget is separate from actual expense.",
+      "properties": {
+        "application_date": {"type": ["string", "null"]},
+        "guest": {"type": "string"},
+        "guest_count": {"type": ["integer", "null"], "minimum": 0},
+        "date": {"type": ["string", "null"]},
+        "time": {"type": "string"},
+        "location": {"type": "string"},
+        "host_attendees": {"type": ["array", "string"], "items": {"type": "string"}},
+        "purpose": {"type": "string"},
+        "estimated_amount": {"type": ["string", "number", "null"]}
+      }
+    },
+    "expenses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "amount", "evidence_ids"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "category": {"enum": ["flight", "rail", "taxi", "meal", "hotel", "other", "reception"]},
+          "amount": {"type": ["string", "number", "null"]},
+          "date": {"type": ["string", "null"]},
+          "purpose": {"type": "string"},
+          "origin": {"type": ["string", "null"]},
+          "destination": {"type": ["string", "null"]},
+          "ticket_count": {"type": ["integer", "null"], "minimum": 0},
+          "trip_days": {"type": ["integer", "null"], "minimum": 0},
+          "taxi_days": {"type": ["integer", "null"], "minimum": 0},
+          "meal_count": {"type": ["integer", "null"], "minimum": 0},
+          "evidence_ids": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "path", "role"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "role": {"enum": ["invoice", "payment", "bill", "itinerary", "approval", "other"]},
+          "amount": {"type": ["string", "number", "null"]},
+          "description": {"type": "string"},
+          "print": {"type": "boolean", "default": true},
+          "print_layout": {"type": "string", "enum": ["ctrip_1x4"]},
+          "source_invoice_identity": {"$ref": "#/$defs/invoice_identity"}
+        }
+      }
+    },
+    "source_companions": {
+      "type": "array",
+      "description": "Alternative original representations; not additional expenses or printed invoice copies.",
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "path", "format"],
+        "properties": {
+          "evidence_id": {"type": "string"},
+          "path": {"type": "string", "minLength": 1},
+          "format": {"enum": ["pdf", "xml", "ofd", "image", "other"]},
+          "source_invoice_identity": {"$ref": "#/$defs/invoice_identity"},
+          "description": {"type": "string"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "invoice_identity": {
+      "type": "object",
+      "required": ["invoice_number"],
+      "properties": {
+        "invoice_number": {"type": "string", "minLength": 1},
+        "invoice_code": {"type": "string"},
+        "issuer_tax_id": {"type": "string"}
+      }
+    }
+  }
+}
