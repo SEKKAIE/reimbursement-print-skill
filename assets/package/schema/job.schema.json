@@ -25,7 +25,9 @@
       "properties": {
         "date": {"type": ["string", "null"]},
         "period": {"type": ["string", "null"]},
-        "attachment_count": {"type": "null"}
+        "attachment_count": {"type": "null"},
+        "subject_name": {"type": "string", "pattern": "^[^\\r\\n]*$", "description": "Explicit expense subject name only for the cover remarks. Not inferred from payer or recipient."},
+        "single_traveler": {"type": "boolean", "default": false, "description": "Validate an individual travel cover with explicit subject_name and ticket_count 1 for each flight leg."}
       }
     },
     "reception_application": {
@@ -52,6 +54,8 @@
           "id": {"type": "string", "minLength": 1},
           "category": {"enum": ["flight", "rail", "taxi", "meal", "hotel", "other", "reception"]},
           "amount": {"type": ["string", "number", "null"]},
+          "other_amount": {"type": ["string", "number", "null"], "description": "Additional evidenced retained fee for this flight/rail leg. Added once to amount in the same row Other column; never a refund credit."},
+          "other_evidence_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}, "description": "For positive other_amount, nonempty subset of evidence_ids identifying the fee proof. No separate other expense may claim these IDs again."},
           "date": {"type": ["string", "null"]},
           "purpose": {"type": "string"},
           "origin": {"type": ["string", "null"]},

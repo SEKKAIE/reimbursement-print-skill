@@ -23,7 +23,8 @@
         "A19:Y21",
         "A22:Y23"
       ],
-      "print_scale_percent": 100
+      "print_scale_percent": 100,
+      "subject_name_cell": "T1"
     },
     "travel": {
       "sheet": "差旅费报销单",
@@ -60,7 +61,9 @@
       "meal_note": "Use explicitly supplied amounts and counts; confirm the applicable expense rules separately.",
       "attachment_count_input": null,
       "attachment_count_note": "Blank by default; fill only when the applicable counting rule is known.",
-      "print_scale_percent": 100
+      "print_scale_percent": 100,
+      "subject_name_cell": "K1",
+      "other_amount_note": "Optional flight/rail other_amount is added to the same row N column and total once. Positive values require other_evidence_ids."
     },
     "reception": {
       "sheet": "业务招待申请单",
@@ -135,5 +138,6 @@
       199,
       87
     ]
-  }
+  },
+  "subject_name_note": "Optional claim.subject_name replaces the remarks box with exactly the expense subject name. Never use recipient or actual payer as a fallback."
 }

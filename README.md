@@ -46,7 +46,7 @@ To update a Git installation with no local edits, run `git pull --ff-only` insid
 2. **Match evidence and fill Excel.** Codex links documents to expense lines, flags missing details and fills a separate workbook for travel, ordinary expenses or client reception.
 3. **Review, print and cut.** Check the amounts and missing inputs, print the prepared A4 sheets at **100%**, then cut along the guides. Signatures stay blank.
 
-The helpers keep expenses separate from supporting payments, preserve original documents, match invoice–itinerary pairs and audit duplicates. Generated pages are recorded as prepared. Only user-confirmed printed pages are suppressed on a later run.
+The helpers keep expenses separate from supporting payments, preserve original documents, match invoice–itinerary pairs and audit duplicates. Optional individual-traveler inputs give each flight leg one ticket, a name-only remarks box and an evidenced ancillary fee on the same row. Generated pages are recorded as prepared. Only user-confirmed printed pages are suppressed on a later run.
 
 ## Print once, cut twice
 

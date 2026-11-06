@@ -37,6 +37,14 @@ def inspect_job(job_path):
     if claim_type not in CLAIMS:
         errors.append('claim_type must be travel, reception or expense')
     profile = job.get('profile', {})
+    claim = job.get('claim', {})
+    subject = claim.get('subject_name')
+    if 'subject_name' in claim and (not isinstance(subject, str) or '\n' in subject or '\r' in subject):
+        errors.append('claim.subject_name must be a single-line name string')
+    if 'single_traveler' in claim and type(claim['single_traveler']) is not bool:
+        errors.append('claim.single_traveler must be boolean')
+    if claim.get('single_traveler') and (claim_type != 'travel' or not isinstance(subject, str) or not subject.strip()):
+        errors.append('single_traveler requires a travel claim and explicit subject_name')
     expenses = job.get('expenses', [])
     evidence = job.get('evidence', [])
     ids = [e.get('id') for e in expenses]
@@ -50,6 +58,8 @@ def inspect_job(job_path):
     claimed_total = Decimal('0')
     missing_amount = False
     prepared_expenses = []
+    ancillary_evidence = {}
+    ancillary_total = Decimal('0')
     for e in expenses:
         category = e.get('category')
         if category not in FORM_CATEGORIES:
@@ -58,6 +68,31 @@ def inspect_job(job_path):
         missing_amount |= amount is None
         if amount is not None:
             claimed_total += amount
+        if claim.get('single_traveler') and category == 'flight' and (type(e.get('ticket_count')) is not int or e['ticket_count'] != 1):
+            errors.append(f"Expense {e.get('id')}: individual flight leg requires ticket_count 1")
+        other_amount = Decimal('0')
+        if e.get('other_amount') is not None:
+            if claim_type != 'travel' or category not in {'flight', 'rail'}:
+                errors.append(f"Expense {e.get('id')}: other_amount is allowed only on a travel flight/rail leg")
+            other_amount = money(e['other_amount'], f"Expense {e.get('id')} other_amount", errors)
+            missing_amount |= other_amount is None
+            if other_amount is None and e['other_amount'] == '':
+                errors.append(f"Expense {e.get('id')}: other_amount cannot be empty")
+            if other_amount is not None:
+                claimed_total += other_amount
+                ancillary_total += other_amount
+            if other_amount is not None and other_amount > 0:
+                extra_links = e.get('other_evidence_ids')
+                if (not isinstance(extra_links, list) or not extra_links or
+                        any(not isinstance(v, str) for v in extra_links) or
+                        len(set(extra_links)) != len(extra_links) or
+                        not set(extra_links) <= set(e.get('evidence_ids', []))):
+                    errors.append(f"Expense {e.get('id')}: positive other_amount requires unique other_evidence_ids included in evidence_ids")
+                else:
+                    for extra_id in extra_links:
+                        if extra_id in ancillary_evidence:
+                            errors.append(f'Ancillary evidence {extra_id} is claimed on multiple legs')
+                        ancillary_evidence[extra_id] = e.get('id')
         links = e.get('evidence_ids', [])
         if not set(links) <= set(evids):
             errors.append(f"Expense {e.get('id')}: unknown linked evidence id")
@@ -66,7 +101,14 @@ def inspect_job(job_path):
             warnings.append(f"Expense {e.get('id')}: payment evidence missing")
         if category == 'taxi' and not any(v.get('role') == 'itinerary' for v in linked):
             warnings.append(f"Expense {e.get('id')}: taxi itinerary/start-end evidence missing")
-        prepared_expenses.append({**e, 'form_category': FORM_CATEGORIES.get(category), 'amount': str(amount) if amount is not None else None})
+        prepared_expenses.append({**e, 'form_category': FORM_CATEGORIES.get(category), 'amount': str(amount) if amount is not None else None,
+                                  'other_amount': str(other_amount) if other_amount is not None else None})
+    for e in expenses:
+        if e.get('category') != 'other':
+            continue
+        for linked_id in e.get('evidence_ids', []):
+            if linked_id in ancillary_evidence and ancillary_evidence[linked_id] != e.get('id'):
+                errors.append(f"Expense {e.get('id')}: ancillary evidence {linked_id} is already claimed on its linked leg; remove the duplicate claim")
     files, hashes = [], {}
     invoice_values = {}
     for e in evidence:
@@ -128,6 +170,7 @@ def inspect_job(job_path):
         'schema_version': 1, 'claim_type': claim_type,
         'status': status,
         'claimed_total_rmb': str(claimed_total.quantize(Decimal('.01'))),
+        'ancillary_total_rmb': str(ancillary_total.quantize(Decimal('.01'))),
         'claimed_total_complete': bool(expenses) and not missing_amount,
         'supporting_unique_invoice_total_rmb': str(invoice_total.quantize(Decimal('.01'))),
         'unknown_invoice_amounts': unknown_invoice_amounts,
