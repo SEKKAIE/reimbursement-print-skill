@@ -13,3 +13,5 @@ Use the bundled [schema](../assets/package/schema/job.schema.json) and [empty ex
 Use exact nonnegative amounts with at most two decimal places. Confirm refunds/credits or any unsupported case rather than silently taking absolute values. Every claimed amount is an explicit expense input. The helpers do not determine eligibility under an employer's policy.
 
 There are six travel rows and nine general-expense rows per form. Split overflow to linked continuations. Leave signatures, attachment-count and unknown traffic-day fields blank. The [field map](../assets/package/forms/field-map.json) defines cells, totals, uppercase amounts, signature regions and print geometry.
+
+For print-only revisions, use the separate [print manifest](print-manifest.md). It adds no expense amounts and does not change financial grouping. Keep payer/rider/recipient reconciliation and source-document identity in the local case record. The existing filler is not a payer inference or automatic claim-splitting engine.

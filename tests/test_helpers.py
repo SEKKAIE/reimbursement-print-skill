@@ -113,6 +113,18 @@ class ReceiptHelperTests(unittest.TestCase):
         helper.pack(job, report, output)
         self.assertEqual([p['evidence_id'] for p in report['print_pack']['placements']], ['payment'])
 
+    def test_legacy_payment_layout_uses_shared_cross_cut_guides(self):
+        job = self.basic_job()
+        job['evidence'][0]['print'] = False
+        _, report = self.inspect(job)
+        output = self.root / 'shared-cuts'
+        output.mkdir()
+        layouts.pack(report, output)
+        pack = report['print_pack']
+        self.assertEqual(pack['placements'][0]['piece_mm'], [105, 148.5])
+        operators = [op for _, op in PdfReader(pack['file']).pages[0].get_contents().operations]
+        self.assertEqual(operators.count(b'S'), 2)
+
     def test_all_unprinted_returns_no_reprint_needed(self):
         job = self.basic_job()
         for evidence in job['evidence']:

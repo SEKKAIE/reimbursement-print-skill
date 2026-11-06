@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "sections": [
+    {
+      "id": "forms",
+      "kind": "forms",
+      "layout": "two_up_136",
+      "orientation": "portrait",
+      "margin_mm": 6,
+      "documents": []
+    },
+    {
+      "id": "receipts",
+      "kind": "evidence",
+      "layout": "grid_2x2",
+      "orientation": "landscape",
+      "margin_mm": 6,
+      "documents": []
+    }
+  ]
+}

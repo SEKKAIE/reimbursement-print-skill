@@ -44,6 +44,8 @@ required = ["SKILL.md", "README.md", "CONTRIBUTING.md", "LICENSE", "agents/opena
             "assets/package/forms/fill_forms.mjs", "assets/package/forms/preserve_print_layout.py",
             "assets/package/scripts/prepare_receipts.py", "assets/package/scripts/pack_by_layout.py",
             "assets/package/schema/job.schema.json", "assets/package/schema/job.example.json"]
+required += ["references/print-manifest.md", "assets/package/schema/print-manifest.example.json",
+             "assets/package/scripts/print_sheets.py", "assets/package/scripts/prepare_print_views.py"]
 for name in required:
     check((ROOT / name).is_file(), f"Missing {name}")
 
@@ -51,6 +53,11 @@ for path in sorted(ROOT.rglob("*")):
     if not path.is_file() or any(part in EXCLUDED_DIRS for part in path.relative_to(ROOT).parts):
         continue
     relative = path.relative_to(ROOT)
+    check(not path.name.lower().startswith('.env') and path.suffix.lower() not in {'.pem', '.key', '.p12', '.pfx'},
+          f"Unexpected environment or credential file: {relative}")
+    allowed_suffixes = TEXT_SUFFIXES | {'.xlsx', '.png'}
+    check(path.suffix in allowed_suffixes or path.name in {'LICENSE', '.gitignore', '.gitattributes'},
+          f"Unexpected file type: {relative}")
     check(path.suffix not in {".pdf", ".png", ".jpg", ".jpeg", ".ofd", ".zip", ".db", ".sqlite"} or relative in APPROVED_IMAGES, f"Unexpected data/binary file: {relative}")
     check(path.suffix != ".xlsx" or relative == EXPECTED_BINARY, f"Unexpected workbook: {relative}")
     if path.suffix in TEXT_SUFFIXES or path.name in {"LICENSE", ".gitignore"}:

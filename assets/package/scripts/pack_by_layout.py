@@ -20,6 +20,8 @@ def layout_for(item):
         return {'name': 'ctrip_1x4', 'columns': 1, 'rows': 4, 'piece_mm': [198, 66], 'gap_mm': 4}
     if override not in {None, ''}:
         raise ValueError(f"Unsupported print_layout for {item['id']}: {override}")
+    if item['role'] == 'payment':
+        return {'name': 'payment_2x2', 'columns': 2, 'rows': 2, 'piece_mm': [105, 148.5], 'gap_mm': 0}
     columns, rows, piece = base.grid_for(item['role'])
     return {'name': 'payment_2x2' if item['role'] == 'payment' else 'ordinary_1x2', 'columns': columns, 'rows': rows, 'piece_mm': list(piece), 'gap_mm': 4}
 
@@ -29,17 +31,21 @@ def positions(layout):
     gap = layout['gap_mm'] * MM
     left = (base.A4[0] - columns * width - (columns - 1) * gap) / 2
     bottom = (base.A4[1] - rows * height - (rows - 1) * gap) / 2
-    assert left >= 5 * MM and bottom >= 5 * MM
+    assert left >= -.001 and bottom >= -.001
     return [(left + c * (width + gap), bottom + (rows - 1 - r) * (height + gap), width, height, r + 1, c + 1) for r in range(rows) for c in range(columns)]
 
-def cut_guides(page, boxes):
+def cut_guides(page, boxes, shared_grid=False):
     buffer = io.BytesIO()
     drawing = canvas.Canvas(buffer, pagesize=base.A4)
     drawing.setStrokeColorRGB(.68, .68, .68)
     drawing.setLineWidth(.3)
     drawing.setDash(2, 2)
-    for x, y, width, height, _, _ in boxes:
-        drawing.rect(x, y, width, height)
+    if shared_grid:
+        drawing.line(base.A4[0] / 2, 0, base.A4[0] / 2, base.A4[1])
+        drawing.line(0, base.A4[1] / 2, base.A4[0], base.A4[1] / 2)
+    else:
+        for x, y, width, height, _, _ in boxes:
+            drawing.rect(x, y, width, height)
     drawing.showPage()
     drawing.save()
     page.merge_page(PdfReader(io.BytesIO(buffer.getvalue())).pages[0])
@@ -65,6 +71,8 @@ def pack(report, output):
                 page_records.append({'output_page': len(writer.pages), 'layout': layout, 'capacity': len(slots), 'used_slots': 0})
                 if layout['name'] == 'ctrip_1x4':
                     cut_guides(destination, slots)
+                elif layout['name'] == 'payment_2x2':
+                    cut_guides(destination, slots, shared_grid=True)
             x, y, width, height, row, column = slots[used]
             used += 1
             box = source_page.cropbox
@@ -75,13 +83,13 @@ def pack(report, output):
             source_width, source_height = float(box.width), float(box.height)
             if source_width <= 0 or source_height <= 0:
                 raise ValueError(f"Invalid source page bounds: {item['id']}")
-            padding = 2 * MM
+            padding = (6 if layout['name'] == 'payment_2x2' else 2) * MM
             scale = min((width - 2 * padding) / source_width, (height - 2 * padding) / source_height)
             fitted_width, fitted_height = source_width * scale, source_height * scale
             fitted_x, fitted_y = x + (width - fitted_width) / 2, y + (height - fitted_height) / 2
             transform = Transformation().translate(-source_box[0], -source_box[1]).scale(scale).translate(fitted_x, fitted_y)
             destination.merge_transformed_page(source_page, transform, expand=False)
-            if layout['name'] != 'ctrip_1x4':
+            if layout['name'] not in {'ctrip_1x4', 'payment_2x2'}:
                 cut_guides(destination, [slots[used - 1]])
             assert fitted_x >= x and fitted_y >= y
             assert fitted_x + fitted_width <= x + width + .001 and fitted_y + fitted_height <= y + height + .001
